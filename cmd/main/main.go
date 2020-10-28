@@ -1,6 +1,9 @@
 package main
 
 import (
+	consoler_pkg "github.com/totoval/consoler/pkg"
+	consoler_facade "github.com/totoval/consoler/pkg/facade"
+	consoler_structs "github.com/totoval/consoler/pkg/structs"
 	"github.com/totoval/dumper/pkg"
 	"github.com/totoval/dumper/pkg/facade"
 	"github.com/totoval/framework/helpers/toto"
@@ -11,6 +14,7 @@ import (
 
 //@todo register into global vars
 var log logger_facade.Logger
+var console consoler_facade.Consoler
 var dump facade.Dumper
 
 func main() {
@@ -27,10 +31,24 @@ func main() {
 
 	log.Info("test", toto.V{"haha": 123}, toto.V{"1": 2})
 
+	// init consoler
+	// use driver then config
+	c := &consoler_pkg.Console{}
+	if err := c.Use(consoler_pkg.DriverDefault).Config(map[string]interface{}{
+		"logger": log,
+	}); err != nil {
+		panic(err)
+	}
+	// get the facade
+	console = c.Component().(consoler_facade.Consoler)
+
+	console.Println(consoler_structs.ColorSuccess, "hello world")
+
 	// use driver then config
 	d := &pkg.Dump{}
 	if err := d.Use(pkg.DriverSpewDump).Config(map[string]interface{}{
-		"logger": log,
+		"logger":   log,
+		"consoler": console,
 	}); err != nil {
 		panic(err)
 	}
